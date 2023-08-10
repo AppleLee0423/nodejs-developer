@@ -1,7 +1,7 @@
 const DB = [];
 
 function saveDB(user) {
-    const oldDBSize = DB.length;
+    const oldDBSize = DB.length + 1;
     DB.push(user);
     console.log(`save ${user.name} to DB`);
     return new Promise((resolve, reject) => { //Promise 객체 반환
@@ -28,7 +28,11 @@ function getResult(user) {
 
 function registerByPromise(user) {
     //비동기 호출이지만 순서를 고려하여 작성해야함
-    const result = saveDB(user).then(sendEmail).then(getResult).catch(error => new Error(error));
+    const result = saveDB(user)
+                    .then(sendEmail)
+                    .then(getResult)
+                    .catch(error => new Error(error))
+                    .finally(() => console.log("완료!"));
     //완료 되지 않은 상태는 pending
     console.log(result);
     return result;
@@ -36,12 +40,13 @@ function registerByPromise(user) {
 
 const myUser = {email: "lee@test.com", password: "1234", name: "이순신"};
 
-/*
 const result = registerByPromise(myUser);
 
 //Promise 결과값은 then() 메서드에 함수를 넣어 확인
 result.then(console.log);
-*/
 
+
+/*
 allResult = Promise.all([saveDB(myUser), sendEmail(myUser), getResult(myUser)]);
 allResult.then(console.log);
+*/
