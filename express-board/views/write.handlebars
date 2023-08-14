@@ -1,19 +1,26 @@
-<h1>[{{title}}] 글 작성</h1>
+<h1>[{{title}}] 글 {{#if (eq mode "create")}}작성{{else}}수정{{/if}}</h1>
 
 <div>
-    <!-- 글 작성 폼 -->
-    <form action="/write" name="boardForm" method="post">
+    <!-- mode에 따라 폼이 반영되는 URL 변경 -->
+    <form name="boardForm" method="post"
+        {{#if (eq mode "create")}} action="/write"
+        {{else}} action="/modify" {{/if}}>
+    
+    <!-- 수정 모드의 경우 id값을 hidden으로 전송-->
+    {{#if (eq mode "modify")}}
+    <input type="hidden" name="id" value="{{post._id}}">
+    {{/if}}
 
         <!-- 제목 입력 -->
         <div>
             <label>제목</label>
-            <input type="text" name="title" placeholder="제목을 입력하세요." value="">
+            <input type="text" name="title" placeholder="제목을 입력하세요." value="{{post.title}}">
         </div>
 
         <!-- 이름 입력 -->
         <div>
             <label for="">이름</label>
-            <input type="text" name="writer" placeholder="이름을 입력하세요." value="">
+            <input type="text" name="writer" placeholder="이름을 입력하세요." value="{{post.writer}}">
         </div>
 
         <!-- 비밀번호 입력 -->
@@ -26,7 +33,7 @@
         <div>
             <label for="">본문 내용</label>
             <br>
-            <textarea name="content" cols="50" rows="10" placeholder="본문"></textarea>
+            <textarea name="content" cols="50" rows="10" placeholder="본문">{{post.content}}</textarea>
             <br>
         </div>
 

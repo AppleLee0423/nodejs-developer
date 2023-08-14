@@ -1,56 +1,59 @@
 <h1>{{title}}</h1>
-<h2 class="text-xl">제목입니다.</h2>
 
-<div>
-    작성자: <b>작성자 이름</b>
-</div>
-
-<div>
-    조회수: 9999 | 작성일시: 2022-12-25 10:00:10
-    <button onclick="modifyPost()">수정</button>
-    <button onclick="deletePost()">삭제</button>
-</div>
-
-<div>
-    <pre>본문입니다. 하이호이</pre>
-</div>
-
-<section>
+{{#with post}}
+    <h2 class="text-xl">{{title}}</h2>
+    
     <div>
-        <h3>3개의 댓글이 있습니다.</h3>
+        작성자: <b>{{writer}}</b>
     </div>
 
-    <form action="/write-comment" method="post">
+    <div>
+        조회수: {{hits}} | 작성일시: {{dateString createdAt}}
+        <button onclick="modifyPost()">수정</button>
+        <button onclick="deletePost()">삭제</button>
+    </div>
+
+    <div>
+        <pre>{{content}}</pre>
+    </div>
+
+    <section>
+        <div>
+            <h3>3개의 댓글이 있습니다.</h3>
+        </div>
+
+        <form action="/write-comment" method="post">
+            <div>
+                <div>
+                    <input type="text" name="name" placeholder="이름">
+                    <input type="password" name="password" placeholder="비밀번호">
+                </div>
+
+                <div>
+                    <textarea name="comment" cols="40" rows="3" placeholder="댓글을 입력하세요."></textarea>
+                    <br><br>
+                    <button>댓글쓰기</button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- 댓글 표시 -->
+    <section>
         <div>
             <div>
-                <input type="text" name="name" placeholder="이름">
-                <input type="password" name="password" placeholder="비밀번호">
+                작성자: <b>댓글 작성자</b>
             </div>
-
             <div>
-                <textarea name="comment" cols="40" rows="3" placeholder="댓글을 입력하세요."></textarea>
-                <br><br>
-                <button>댓글쓰기</button>
+                작성일시: 2022-12-25 11:11:11
+                <button onclick="deleteComment('1')">댓글삭제</button>
             </div>
         </div>
-    </form>
-</section>
-
-<!-- 댓글 표시 -->
-<section>
-    <div>
         <div>
-            작성자: <b>댓글 작성자</b>
+            <pre>{{comment}}</pre>
         </div>
-        <div>
-            작성일시: 2022-12-25 11:11:11
-            <button onclick="deleteComment('1')">댓글삭제</button>
-        </div>
-    </div>
-    <div>
-        <pre>{{comment}}</pre>
-    </div>
-</section>
+    </section>
+{{/with}}
 
 <!-- 목록으로 이동 -->
 <footer>
@@ -58,3 +61,57 @@
         <a href="/">목록으로</a>
     </div>
 </footer>
+
+<script>
+    const postOption = {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json',},
+    }
+
+    async function modifyPost() {
+        const password = prompt("패스워드를 입력하세요.");
+        if(!password){
+            return;
+        }
+
+        //check-password API 실행
+        const result = await fetch("/check-password", {
+            ...postOption,
+            body: JSON.stringify({id: "{{post._id}}", password})
+        });
+
+        const data = await result.json();
+
+        //패스워드 일치 시 수정 페이지로 이동
+        if(data.isExist) {
+            document.location = "/modify/{{post._id}}";
+        } else {
+            alert("패스워드가 일치하지 않습니다.");
+        }
+    }
+
+    const deleteOption = {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json',},
+    }
+
+    async function deletePost() {
+        const password = prompt("패스워드를 입력하세요.");
+        if(!password) {
+            return;
+        }
+
+        const result = await fetch("/delete", {
+            ...deleteOption,
+            body: JSON.stringify({id: "{(post._id)}", password})
+        });
+
+        const data = await result.json();
+        if(!data.isSuccess) {
+            alert("삭제에 실패했습니다. 패스워드를 확인해주세요.");
+            return;
+        }
+
+        document.location = "/";
+    }
+</script>
