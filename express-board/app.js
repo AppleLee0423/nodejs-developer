@@ -4,7 +4,7 @@ const app = express();
 const mongodbConnection = require("./configs/mongodb-connection");
 
 const postService = require("./services/post-service");
-const ObjectID = require("mongodb");
+const {ObjectID} = require("mongodb");
 
 //req.body 사용하기 위한 미들웨어 설정
 app.use(express.json());
@@ -100,6 +100,58 @@ app.delete("/delete", async (req, res) => {
         console.error(error);
         return res.json({isSuccess: false});
     }
+});
+
+//댓글 추가
+app.post("/write-comment", async (req, res) => {
+    const {id, name, password, comment} = req.body;
+    const post = await postService.getPostById(collection, id);
+
+    if(post.comments) {
+        //기존 댓글이 있으면 추가
+        post.comments.push({
+            idx: post.comments.length + 1,
+            name,
+            password,
+            comment,
+            createdAt: new Date().toISOString(),
+        });
+    } else {
+        //기존 댓글이 없으면 리스트에 댓글 정보 추가
+        post.comments = [
+            {
+            idx: 1,
+            name,
+            password,
+            comment,
+            createdAt: new Date().toISOString(),
+            },
+        ];
+    }
+
+    postService.updatePost(collection, id, post);
+    return res.redirect(`/detail/${id}`);
+});
+
+//댓글 삭제
+app.delete("/delete-comment", async (req, res) => {
+    const {id, idx, password} = req.body;
+    
+    //$elemMatch: 도큐먼트 리스트에서 조건에 맞는 데이터가 있으면 결과값을 주는 연산자
+    const post = await collection.findOne({
+        _id: ObjectID(id),
+        comments: {$elemMatch: {idx: parseInt(idx), password}},
+    }, postService.projectionOption,);
+
+    //데이터가 없는 경우
+    if(!post) {
+        return res.json({isSuccess: false});
+    }
+
+    //댓글 번호 idx를 제외하고  comments에 재할당 후 저장
+    post.comments = post.comments.filter((comment) => comment.idx != idx);
+    postService.updatePost(collection, id, post);
+    return res.json({isSuccess: true});
 });
 
 let collection;
